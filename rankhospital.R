@@ -29,9 +29,14 @@ rankhospital<-function(state,outcome,num="best"){
         ## Return hospital name in that state with the given rank
         ## 30-day death rate
         #--------------------------------------------------------
-        statedata<-statedata[order(statedata[,outcomeVar], statedata$Hospital.Name),]
-        statedata$Rank<-rank(statedata[,outcomeVar],ties.method="first") #
-        selectRank<-statedata$Hospital.Name[statedata$Rank==num] #
-        selectRank
+        nobs<-sum(!is.na(statedata[,outcomeVar])) # number of non missing observations for that outcome
+        if(num=="best") num<-1 # interprets 'Best' as rank=1
+        if(num=="worst") num<-nobs # interprets 'Worst' as last non missing
+        statedata<-statedata[order(statedata[,outcomeVar], statedata$Hospital.Name),] # sorts the observations by the outcome variable and by the name of the hospital
+        statedata$Rank<-rank(statedata[,outcomeVar],ties.method="first") # ranks the hospitals.
+        #In case of a tie, the ranks are given in the order of appearance in the df (already sorted alphabetically).
+        HospAtRank<-statedata$Hospital.Name[statedata$Rank==num] # Name of the hospital at the selected rank
+        if(num>nobs) return(NA)
+        HospAtRank
         
 }
