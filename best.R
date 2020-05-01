@@ -12,35 +12,34 @@ best<-function(state,outcome){
         data[,cols.num]<-suppressWarnings(sapply(data[,cols.num],as.numeric))
         
         outcomes<-list("heart attack"=3,"heart failure"=4, "pneumonia"=5)
+        outcomesAbbr<-list("HA"=3,"HF"=4,"PN"=5)
+        
+        for(i in outcomesAbbr){
+                Rank<-rank(data[,i],ties.method="min")
+                varnameRank<-paste("National.Rank",names(outcomesAbbr)[outcomesAbbr==i],sep=".")
+                assign(varnameRank,Rank)
+                data<-cbind(data,get(varnameRank))
+                names(data)[ncol(data)]<-varnameRank
+        }
         
         ## Check that state and outcome are valid
         outcomeVar<-outcomes[[outcome]]
         if(is.null(outcomeVar)){
-                return("Invalid outcome")
+                stop("Invalid outcome") #returns an error message
         }
         
         validState<-sum(data$State==state)!=0
         if(validState!=TRUE){
-                return("Invalid state")
+                stop("Invalid state") #returns an error message
         }
         statedata <- data[ which(data$State==state), ]
         
         ## Return hospital name in that state with lowest 30-day death rate
         minoutcome<-min(statedata[,outcomeVar],na.rm=TRUE)
-        statedata$Hospital.Name[which(statedata[outcomeVar]==minoutcome)]
+        statedata$Hospital.Name[which(statedata[,outcomeVar]==minoutcome)]
         
 }
 
 
-### test
-#head(data[,cols.num])
-# best("TX","heart attack")
-# best("TX","heart failure")
-# best("MD","heart attack")
-# best("MD","pneumonia")
-# best("BB","heart attack")
-# best("NY","hert attack")
-
 #sort alphabetically in case of a tie
-#return error messages
 
