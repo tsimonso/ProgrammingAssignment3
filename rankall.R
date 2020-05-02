@@ -31,14 +31,12 @@ rankall<-function(outcome,num="best"){
         }
 
         nrObsPerState<-tapply(data[,outcomeVar],data$State,nonNA) #returns a vector with the nr of non missing obs per state
-        
-        Rankmax<-max(nrObsPerState) # returns the max possible rank for that outcome (max nr of obs by a state)
         if(num=="best") num<-1 # interprets 'Best' as rank=1
-        if(num=="worst") num<-Rankmax # interprets 'Worst' as last rank possible
         
         states<-levels(data$State)
         for(i in seq_along(s)){ # loops over the states
-                state<-states[i]
+                state<-states[i] # abbreviated name of the state
+                if(num=="worst") num<-nrObsPerState[i] # 'Worst' = last rank in the state
                 statedata<-data[which(data$State==state),] #subsets the state data
                 statedata<-statedata[order(statedata[,outcomeVar], statedata$Hospital.Name),] # sorts the observations by the outcome variable and by the name of the hospital
                 statedata$Rank<-rank(statedata[,outcomeVar],ties.method="first",na.last=TRUE) # ranks the hospitals. If outcome=NA -> rank=NA
