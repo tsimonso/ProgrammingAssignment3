@@ -24,27 +24,27 @@ rankall<-function(outcome,num="best"){
         ## (abbreviated) state name
         ##-----------------------------------------------------
         
-        ## Number of observations per state for the outcome of interest
-        nonNA<-function(obsVect){ # creates a function to count the non missing obs
-                x<-!is.na(obsVect) # logical vector indicating non missing obs
-                y<-sum(x) # number of non missing obs
-        }
+        atRank<-num #copies the value of the rank argument, before the
+        if(num=="best") atRank<-1 # interprets 'Best' as rank=1
+        result<-NA # creates the object result that will receive the names of the hospitals
 
-        nrObsPerState<-tapply(data[,outcomeVar],data$State,nonNA) #returns a vector with the nr of non missing obs per state
-        if(num=="best") num<-1 # interprets 'Best' as rank=1
-        
         states<-levels(data$State)
-        for(i in seq_along(s)){ # loops over the states
+        for(i in seq_along(states)){ # loops over the states
                 state<-states[i] # abbreviated name of the state
-                if(num=="worst") num<-nrObsPerState[i] # 'Worst' = last rank in the state
                 statedata<-data[which(data$State==state),] #subsets the state data
-                statedata<-statedata[order(statedata[,outcomeVar], statedata$Hospital.Name),] # sorts the observations by the outcome variable and by the name of the hospital
-                statedata$Rank<-rank(statedata[,outcomeVar],ties.method="first",na.last=TRUE) # ranks the hospitals. If outcome=NA -> rank=NA
+                
+                nrObs<-sum(!is.na(statedata[,outcomeVar])) #number of non missing observation for that outcome
+                if(num=="worst") {
+                        atRank<-nrObs # 'Worst' = last rank in the state
+                }
+                
+                statedata<-statedata[order(statedata$Hospital.Name),] # sorts the observations by the outcome variable and by the name of the hospital
+                statedata$Rank<-rank(statedata[,outcomeVar],ties.method="first")#,na.last=TRUE) # ranks the hospitals. If outcome=NA -> rank=NA
                 ##In case of a tie, the ranks are given in the order of appearance in the df (already sorted alphabetically).
-                HospAtRank<-statedata$Hospital.Name[statedata$Rank==num] # Name of the hospital at the selected rank
+                HospAtRank<-statedata$Hospital.Name[statedata$Rank==atRank] # Name of the hospital at the selected rank
                 if(identical(HospAtRank, character(0))) HospAtRank<-NA # If there is no hospital at that rank, NA is returned
-                result[i]<-HospAtRank
+                result[i]<-HospAtRank # adds the name of the hospital to the vector
         }
-        resultDf<-data.frame(hospital=result,state=states,row.names=states)
+        resultDf<-data.frame(hospital=result,state=states,row.names=states) # creates the output dataframe
         resultDf
 }
